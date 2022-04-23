@@ -84,4 +84,31 @@ const addBook = (request, h) => {
   return response;
 };
 
-module.exports = { addBook };
+const getAllBooks = () => ({
+  status: `success`,
+  data: {
+    books,
+  },
+});
+
+const getBookById = (request, h) => {
+  const { id } = request.params;
+  const book = books.filter((bk) => bk.id === id)[0];
+  if (book !== undefined) {
+    return {
+      status: `success`,
+      data: {
+        book,
+      },
+    };
+  }
+
+  const response = h.response({
+    status: `fail`,
+    message: `Buku tidak ditemukan`,
+  });
+  response.code(400);
+  return response;
+};
+
+module.exports = { addBook, getAllBooks, getBookById };
