@@ -17,7 +17,7 @@ const addBook = (request, h) => {
 
   const id = nanoid(16);
   // eslint-disable-next-line no-new-wrappers
-  const finished = new Boolean(false);
+  let finished;
   const insertedAt = new Date().toISOString();
   const updatedAt = insertedAt;
 
@@ -36,7 +36,35 @@ const addBook = (request, h) => {
     updatedAt,
   };
 
+  // eslint-disable-next-line quotes
+  if (newBook.hasOwnProperty("name") && newBook.readPage <= newBook.pageCount) {
+    if (newBook.readPage === newBook.pageCount) {
+      newBook.finished = true;
+    } else {
+      newBook.finished = false;
+    }
+  }
+
+  if (name === undefined) {
+    const response = h.response({
+      status: `fail`,
+      message: `Gagal menambahkan buku. Mohon isi nama buku`,
+    });
+    response.code(400);
+    return response;
+  }
+  if (readPage > pageCount) {
+    const response = h.response({
+      status: `fail`,
+      // eslint-disable-next-line max-len
+      message: `Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount`,
+    });
+    response.code(400);
+    return response;
+  }
+
   books.push(newBook);
+  // eslint-disable-next-line max-len
   const isSuccess = books.filter((book) => book.id === id).length > 0;
   // const isName = books.name.typeOf(string);
   //   const isName = (book) => {
@@ -53,32 +81,9 @@ const addBook = (request, h) => {
     response.code(201);
     return response;
   }
-  if (addBook.name == undefined) {
-    const response = h.response({
-      status: `fail`,
-      message: `Gagal menambahkan buku. Mohon isi nama buku`,
-      data: {
-        newBook,
-      },
-    });
-    response.code(400);
-    return response;
-  }
-  if (readPage >= pageCount) {
-    const response = h.response({
-      status: `fail`,
-      // eslint-disable-next-line max-len
-      message: `Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount`,
-    });
-    response.code(400);
-    return response;
-  }
   const response = h.response({
     status: `error`,
     message: `Buku gagal ditambahkan`,
-    data: {
-      newBook,
-    },
   });
   response.code(500);
   return response;
@@ -87,7 +92,11 @@ const addBook = (request, h) => {
 const getAllBooks = () => ({
   status: `success`,
   data: {
-    books,
+    books: books.map((book) => ({
+      id: book.id,
+      name: book.name,
+      publisher: book.publisher,
+    })),
   },
 });
 
@@ -107,7 +116,7 @@ const getBookById = (request, h) => {
     status: `fail`,
     message: `Buku tidak ditemukan`,
   });
-  response.code(400);
+  response.code(404);
   return response;
 };
 
@@ -125,6 +134,23 @@ const editBookById = (request, h) => {
   } = request.payload;
   const updatedAt = new Date().toISOString();
   const index = books.findIndex((book) => book.id === id);
+  if (name === undefined) {
+    const response = h.response({
+      status: `fail`,
+      message: `Gagal memperbarui buku. Mohon isi nama buku`,
+    });
+    response.code(400);
+    return response;
+  }
+  if (readPage > pageCount) {
+    const response = h.response({
+      status: `fail`,
+      // eslint-disable-next-line max-len
+      message: `Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount`,
+    });
+    response.code(400);
+    return response;
+  }
   if (index !== -1) {
     books[index] = {
       ...books[index],
@@ -135,35 +161,15 @@ const editBookById = (request, h) => {
       publisher,
       pageCount,
       readPage,
-      finished,
       reading,
       updatedAt,
     };
+    // if (book !== undefined) {
     const response = h.response({
       status: `success`,
       message: `Buku berhasil diperbarui`,
     });
     response.code(200);
-    return response;
-  }
-  if (addBook.name == undefined) {
-    const response = h.response({
-      status: `fail`,
-      message: `Gagal menambahkan buku. Mohon isi nama buku`,
-      data: {
-        newBook,
-      },
-    });
-    response.code(400);
-    return response;
-  }
-  if (readPage >= pageCount) {
-    const response = h.response({
-      status: `fail`,
-      // eslint-disable-next-line max-len
-      message: `Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount`,
-    });
-    response.code(400);
     return response;
   }
   const response = h.response({
